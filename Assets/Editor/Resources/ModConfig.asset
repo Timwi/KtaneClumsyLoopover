@@ -13,16 +13,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: clumsyLoopover
   title: Clumsy Loopover
-  author: TasThing
-  description: 'ingers. Fat f
-
-
-    Module idea and implementation by TasThing.
-
-
-    [url=https://ktane.timwi.de/HTML/Clumsy%20Loopover.html]Manual HTML[/url]
-
-    [url=https://ktane.timwi.de/PDF/Clumsy%20Loopover.pdf]Manual PDF[/url]'
-  version: 1.0.1
+  author: TasThiluna
+  description: "Get them up for me, Nickel\r.\n\r\nModule idea and implementation
+    by TasThiluna.\r\n\r\n[url=https://ktane.timwi.de/HTML/Clumsy%20Loopover.html]Manual
+    HTML[/url]\r\n[url=https://ktane.timwi.de/PDF/Clumsy%20Loopover.pdf]Manual PDF[/url]"
+  version: 1.0.2
   outputFolder: build
   previewImage: {fileID: 2800000, guid: cf4db860b46560145b9e21eff2843d23, type: 3}
