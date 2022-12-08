@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using rnd = UnityEngine.Random;
 
@@ -338,6 +338,14 @@ public class clumsyLoopover : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
+        if (Regex.IsMatch(command, @"^\s*s\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            yield return null;
+            var e = TwitchSolver(true);
+            while (e.MoveNext())
+                yield return e.Current;
+        }
+
         string[] parameters = command.Split(' ');
         if (paramsValid(parameters))
         {
@@ -598,5 +606,230 @@ public class clumsyLoopover : MonoBehaviour
                 }
             }
         }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve()
+    {
+        return TwitchSolver();
+    }
+
+    private IEnumerator TwitchSolver(bool oneStepOnly = false)
+    {
+        var colUp = Enumerable.Range(0, 6).Select(col => negvertibuttons[colLeft ? (col + 1) % 6 : col]).ToArray();
+        var colDown = Enumerable.Range(0, 6).Select(col => posvertibuttons[colLeft ? (col + 1) % 6 : col]).ToArray();
+        var rowLeft = Enumerable.Range(0, 6).Select(row => neghoributtons[rowAbove ? (row + 1) % 6 : row]).ToArray();
+        var rowRight = Enumerable.Range(0, 6).Select(row => poshoributtons[rowAbove ? (row + 1) % 6 : row]).ToArray();
+
+        //foreach (var btn in new[] { colUp[0] })
+        //{
+        //    btn.OnInteract();
+        //    yield return new WaitForSeconds(.1f);
+        //}
+        //yield break;
+
+        // Step 1: place the bottommost three rows
+        while (true)
+        {
+            var state = currentState.Select(s => s[0] >= '0' && s[0] <= '9' ? s[0] - '0' : s[0] - 'A' + 10).ToArray();
+            var cell = Enumerable.Range(0, 36).LastOrDefault(c => state[c] != c);
+            if (cell == 0)
+                break;
+            if (cell < 15)
+            {
+                Debug.LogFormat("<> temporarily done!");
+                yield break;
+            }
+
+            var source = Array.IndexOf(state, cell);
+            if (source > cell)
+                throw new InvalidOperationException();
+            if (source == cell)
+                continue;
+
+            var buttons = new List<KMSelectable>();
+            // Case where the col B cell is already correct but the col A cell is not
+            if (cell % 6 == 0)
+            {
+                Debug.LogFormat("<> Cell {0} is correct but Cell {1} isn’t ⇒ moving {0} out of column B", solveState[cell + 1], solveState[cell]);
+                buttons.Add(colUp[0]);
+                buttons.Add(rowRight[cell / 6 - 2]);
+                buttons.Add(colDown[0]);
+            }
+            else if (cell % 6 == 1)
+            {
+                // for columns A,B: find out where both of the next two tiles are
+                var src1 = Array.IndexOf(state, cell - 1);
+                var src2 = Array.IndexOf(state, cell);
+
+                // Move src1 and src2 out of the top row
+                if (src1 / 6 == 0 && src2 / 6 == 1 && (src1 + 2) % 6 == src2 % 6)
+                {
+                    Debug.LogFormat("<> Moving {0} out of the top row (special case)", solveState[cell - 1]);
+                    buttons.Add(colDown[(src1 + 5) % 6]);
+                    buttons.Add(rowRight[1]);
+                    buttons.Add(colUp[(src1 + 5) % 6]);
+                }
+                else if (src1 / 6 == 0)
+                {
+                    Debug.LogFormat("<> Moving {0} out of the top row (common case)", solveState[cell - 1]);
+                    buttons.Add(colDown[src1]);
+                    buttons.Add(rowLeft[1]);
+                    buttons.Add(colUp[src1]);
+                }
+                else if (src2 / 6 == 0 && src1 / 6 == 1 && (src2 + 2) % 6 == src1 % 6)
+                {
+                    Debug.LogFormat("<> Moving {0} out of the top row (special case)", solveState[cell]);
+                    buttons.Add(colDown[(src2 + 5) % 6]);
+                    buttons.Add(rowRight[1]);
+                    buttons.Add(colUp[(src2 + 5) % 6]);
+                }
+                else if (src2 / 6 == 0)
+                {
+                    Debug.LogFormat("<> Moving {0} out of the top row (common case)", solveState[cell]);
+                    buttons.Add(colDown[src2]);
+                    buttons.Add(rowLeft[1]);
+                    buttons.Add(colUp[src2]);
+                }
+                // Special case: if the two cells are already in the correct place but swapped
+                else if (src1 == cell && src2 == cell - 1)
+                {
+                    Debug.LogFormat("<> {0} and {1} are correct but swapped ⇒ move them out", solveState[cell - 1], solveState[cell]);
+                    buttons.Add(colUp[0]);
+                    buttons.Add(rowRight[cell / 6 - 2]);
+                    buttons.Add(colDown[0]);
+                }
+                // Move src1 out of the left two columns
+                else if (src1 != cell && src1 % 6 < 2)
+                {
+                    Debug.LogFormat("<> Moving {0} out of col A/B", solveState[cell - 1]);
+                    buttons.Add((src1 % 6 == 0 ? rowLeft : rowRight)[src1 / 6 == cell / 6 - 1 ? src1 / 6 - 1 : src1 / 6]);
+                }
+                else if (src1 != cell)
+                {
+                    Debug.LogFormat("<> Moving {0} to position B{1}", solveState[cell - 1], cell / 6 + 1);
+                    buttons.AddRange(Enumerable.Repeat(colUp[0], cell / 6 - src1 / 6));
+                    buttons.AddRange(Enumerable.Repeat(rowLeft[src1 / 6 - 1], src1 % 6 - 2));
+                    if (src2 == src1 - 1 && src2 / 6 == cell / 6 - 1)
+                    {
+                        buttons.Add(colUp[0]);
+                        buttons.Add(rowRight[src2 / 6 - 2]);
+                        buttons.Add(colDown[0]);
+                    }
+                    else if (src2 == src1 - 1)
+                    {
+                        buttons.Add(colDown[0]);
+                        buttons.Add(rowRight[src1 / 6]);
+                        buttons.Add(colUp[0]);
+                        buttons.Add(rowLeft[src1 / 6 - 1]);
+                    }
+                    buttons.Add(rowLeft[src1 / 6 - 1]);
+                    buttons.AddRange(Enumerable.Repeat(colDown[0], cell / 6 - src1 / 6));
+                }
+                // Move src2 into column C
+                else if (src2 % 6 < 2)
+                {
+                    Debug.LogFormat("<> Moving {0} right into column C", solveState[cell]);
+                    buttons.AddRange(Enumerable.Repeat(rowRight[src2 / 6 - 1], 2 - src2 % 6));
+                }
+                else if (src2 % 6 > 2)
+                {
+                    Debug.LogFormat("<> Moving {0} left into column C", solveState[cell]);
+                    buttons.AddRange(Enumerable.Repeat(rowLeft[src2 / 6 - 1], src2 % 6 - 2));
+                }
+                // Final scoop
+                else
+                {
+                    Debug.LogFormat("<> Moving {0} and {1} into their place", solveState[cell - 1], solveState[cell]);
+                    buttons.AddRange(Enumerable.Repeat(colUp[0], cell / 6 - src2 / 6));
+                    buttons.Add(rowLeft[src2 / 6 - 1]);
+                    buttons.AddRange(Enumerable.Repeat(colDown[0], cell / 6 - src2 / 6));
+                }
+            }
+            else
+            {
+                // for columns C,D,E,F:
+                var srcCol = source % 6;
+                var srcRow = source / 6;
+                var targetCol = cell % 6;
+                var targetRow = cell / 6;
+
+                if (srcRow == targetRow)
+                {
+                    // case ⬡: source is in the target row
+                    // move source column-1 up, move target row-2 right×2, move source column back, goto △
+                    Debug.LogFormat("<> Case ⬡ for {0}", solveState[cell]);
+                    buttons.Add(colUp[srcCol == 0 ? 0 : srcCol - 1]);
+                    buttons.Add(rowRight[targetRow - 2]);
+                    buttons.Add(rowRight[targetRow - 2]);
+                    buttons.Add(colDown[srcCol == 0 ? 0 : srcCol - 1]);
+                    srcCol = (srcCol + 2) % 6;
+                    srcRow--;
+                }
+
+                if ((srcCol > targetCol || srcCol < targetCol - 1) && srcRow > 0)
+                {
+                    Debug.LogFormat("<> Case △ for {0}", solveState[cell]);
+                    goto case1;
+                }
+
+                if (srcCol > targetCol || srcCol < targetCol - 1)
+                {
+                    Debug.LogFormat("<> Case □ for {0}", solveState[cell]);
+                    goto case2;
+                }
+
+                // case ▽: source is in the target column or target column-1
+                // move source row or row-1 (as appropriate) right, goto △ or □
+                case3:
+                Debug.LogFormat("<> Case ▽ for {0}", solveState[cell]);
+                buttons.Add((srcCol == targetCol ? rowRight : rowLeft)[srcRow == 0 ? 0 : srcRow - 1]);
+                srcCol += srcCol == targetCol ? 1 : -1;
+                if (srcRow != 0)
+                    goto case1;
+
+                // case □: source is in the top row and not in the target column or target column-1
+                // move target column-1 up, move source row left into target column, move target column back, goto ▽
+                case2:
+                buttons.Add(colUp[targetCol - 1]);
+                buttons.AddRange(Enumerable.Repeat(rowLeft[srcRow], (srcCol + 6 - targetCol) % 6));
+                buttons.Add(colDown[targetCol - 1]);
+                srcRow++;
+                srcCol = targetCol;
+                goto case3;
+
+                case1:
+                // case △: source is not in the top row or in the target column or target column-1
+                // move target column-1 up, move source row-1 left, move target column back
+                buttons.AddRange(Enumerable.Repeat(colUp[targetCol - 1], targetRow - srcRow));
+                buttons.AddRange(Enumerable.Repeat(rowLeft[srcRow - 1], (srcCol + 6 - targetCol) % 6));
+                buttons.AddRange(Enumerable.Repeat(colDown[targetCol - 1], targetRow - srcRow));
+            }
+
+            Debug.LogFormat("<> Buttons: {0}", buttons.Select(btn =>
+            {
+                if (colUp.Contains(btn))
+                    return "↑" + (char) ('A' + Array.IndexOf(colUp, btn));
+                else if (colDown.Contains(btn))
+                    return "↓" + (char) ('A' + Array.IndexOf(colDown, btn));
+                else if (rowRight.Contains(btn))
+                    return "→" + (Array.IndexOf(rowRight, btn) + 1);
+                else if (rowLeft.Contains(btn))
+                    return "←" + (Array.IndexOf(rowLeft, btn) + 1);
+                return "ERROR";
+            }).Join(" "));
+
+            foreach (var btn in buttons)
+            {
+                btn.OnInteract();
+                yield return new WaitForSeconds(.1f);
+            }
+            while (_animationQueue.Count > 0)
+                yield return true;
+
+            if (oneStepOnly)
+                break;
+        }
+
+        yield break;
     }
 }
