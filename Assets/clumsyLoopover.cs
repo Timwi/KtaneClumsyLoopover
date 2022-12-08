@@ -346,7 +346,7 @@ public class clumsyLoopover : MonoBehaviour
             {
                 if (parameters[i].EqualsIgnoreCase("col1"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -367,7 +367,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("col2"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -388,7 +388,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("col3"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -409,7 +409,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("col4"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -430,7 +430,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("col5"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -451,7 +451,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("col6"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("u"))
                     {
@@ -472,7 +472,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row1"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
@@ -493,7 +493,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row2"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
@@ -514,7 +514,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row3"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
@@ -535,7 +535,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row4"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
@@ -556,7 +556,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row5"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
@@ -577,7 +577,7 @@ public class clumsyLoopover : MonoBehaviour
                 }
                 else if (parameters[i].EqualsIgnoreCase("row6"))
                 {
-                    int temp = 0;
+                    int temp;
                     int.TryParse(parameters[i + 1].Substring(1, 1), out temp);
                     if (parameters[i + 1].Substring(0, 1).EqualsIgnoreCase("l"))
                     {
